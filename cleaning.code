@@ -1,0 +1,47 @@
+import pandas as pd
+import os
+
+# File path
+file_path = 'taylor_swift_data_from_kaggle.csv'
+
+# Check if file exists
+if not os.path.exists(file_path):
+    raise FileNotFoundError(f"The file '{file_path}' does not exist. Please check the path.")
+
+# Read dataset from CSV file
+df = pd.read_csv(file_path)
+
+# Clean column names (strip whitespace, lowercase)
+df.columns = df.columns.str.strip().str.lower()
+
+# Clean text columns if they exist
+text_columns = ['name', 'album']
+for col in text_columns:
+    if col in df.columns:
+        df[col] = df[col].str.strip()
+
+# Validate and clean numeric columns
+numeric_cols = ['acousticness', 'instrumentalness', 'liveness', 'popularity', 'duration_ms']
+for col in numeric_cols:
+    if col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce')  # Convert to numeric, NaN for invalid entries
+
+# Ensure 'track_number' column is an integer (if present)
+if 'track_number' in df.columns:
+    df['track_number'] = pd.to_numeric(df['track_number'], errors='coerce').fillna(0).astype(int)
+
+# Convert duration from milliseconds to minutes if 'duration_ms' column exists
+if 'duration_ms' in df.columns:
+    df['duration_minutes'] = df['duration_ms'] / 60000  # Convert ms to minutes
+
+# Drop duplicates (if any)
+df = df.drop_duplicates()
+
+# Display cleaned DataFrame preview
+print("Cleaned Data (Preview):")
+print(df.head())
+
+# Export cleaned data to a new CSV file
+output_file_path = 'cleaned_taylor_swift_spotify.csv'
+df.to_csv(output_file_path, index=False)
+print(f"Cleaned data saved to: {output_file_path}")

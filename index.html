@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torched Poets Department: A Taylor Swift Journey</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background: linear-gradient(to bottom right, #fdf5e6, #fbc2eb);
+            color: #4b2c20;
+            margin: 0;
+            padding: 0;
+            background-attachment: fixed;
+        }
+
+        header {
+            background: linear-gradient(135deg, #ff9e9e, #ffcccb);
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            font-size: 2.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            position: relative;
+        }
+
+        header::after {
+            content: '"All is fair in love and poets."';
+            font-size: 1.2rem;
+            font-style: italic;
+            color: #f5f5f5;
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            margin: 0 8px;
+            border: none;
+            background-color: rgba(255, 193, 204, 0.8);
+            border-radius: 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.4s ease;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .tab-button.active {
+            background-color: #e57399;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            margin: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .search-box {
+            display: block;
+            margin: 15px 0;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e57399;
+            font-size: 1rem;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        canvas, img {
+            max-width: 100%;
+            margin: 20px auto;
+        }
+
+        .result {
+            background-color: #fdecef;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 10px 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .file-upload {
+            margin-top: 20px;
+        }
+
+        .quote {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 20px 0;
+            font-style: italic;
+            color: #6b4e57;
+        }
+    </style>
+</head>
+<body>
+    <header>Torched Poets Department: A Taylor Swift Journey</header>
+
+    <div class="tabs">
+        <button class="tab-button active" onclick="switchTab('albumTab')">Album Search</button>
+        <button class="tab-button" onclick="switchTab('songTab')">Song Search</button>
+        <button class="tab-button" onclick="switchTab('chartTab')">Visualizations</button>
+        <button class="tab-button" onclick="switchTab('uploadTab')">Upload File</button>
+    </div>
+
+    <div id="albumTab" class="tab-content active">
+        <h2>Search Albums</h2>
+        <p class="quote">“You can’t spell awesome without me!” – Lover</p>
+        <input type="text" id="searchAlbumInput" class="search-box" placeholder="Search for an album...">
+        <div id="albumResults" class="result"></div>
+    </div>
+
+    <div id="songTab" class="tab-content">
+        <h2>Search Songs</h2>
+        <p class="quote">“All too well, it burns.” – Red</p>
+        <input type="text" id="searchSongInput" class="search-box" placeholder="Search for a song...">
+        <div id="songResults" class="result"></div>
+    </div>
+
+    <div id="chartTab" class="tab-content">
+        <h2>Visualizations</h2>
+        <p class="quote">“The numbers on the board, the numbers of my heart.”</p>
+        <canvas id="chartCanvas"></canvas>
+    </div>
+
+    <div id="uploadTab" class="tab-content">
+        <h2>Upload a File</h2>
+        <p class="quote">“Here’s to the stories we’ve yet to tell.” – Folklore</p>
+        <div class="file-upload">
+            <label for="fileInput">Upload a File:</label>
+            <input type="file" id="fileInput" accept=".csv"><br><br>
+            <div id="fileDetails"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let albumData = [];
+
+        document.getElementById("fileInput").addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const csv = e.target.result;
+                    albumData = csv.split("\n").slice(1).map(row => {
+                        const [trackName, albumName, acousticness, popularity] = row.split(",");
+                        return { trackName, albumName, acousticness, popularity };
+                    });
+                };
+                reader.readAsText(file);
+                document.getElementById("fileDetails").innerHTML = `
+                    <p>File Name: ${file.name}</p>
+                    <p>File Size: ${(file.size / 1024).toFixed(2)} KB</p>
+                `;
+            } else {
+                document.getElementById("fileDetails").innerHTML = "<p>No file selected.</p>";
+            }
+        });
+
+        document.getElementById("searchAlbumInput").addEventListener("input", (event) => {
+            const query = event.target.value.toLowerCase();
+            const results = albumData.filter(item => item.albumName && item.albumName.toLowerCase().includes(query));
+            const resultsContainer = document.getElementById("albumResults");
+
+            if (results.length > 0) {
+                const groupedByAlbum = results.reduce((acc, item) => {
+                    acc[item.albumName] = acc[item.albumName] || [];
+                    acc[item.albumName].push(item);
+                    return acc;
+                }, {});
+
+                resultsContainer.innerHTML = Object.entries(groupedByAlbum)
+                    .map(([albumName, songs]) => `
+                        <div>
+                            <h3>${albumName}</h3>
+                            <ul>
+                                ${songs.map(song => `<li>${song.trackName}</li>`).join("")}
+                            </ul>
+                        </div>
+                    `)
+                    .join("");
+            } else {
+                resultsContainer.innerHTML = "<p>No albums found.</p>";
+            }
+        });
+
+        document.getElementById("searchSongInput").addEventListener("input", (event) => {
+            const query = event.target.value.toLowerCase();
+            const results = albumData.filter(song => song.trackName && song.trackName.toLowerCase().includes(query));
+            const resultsContainer = document.getElementById("songResults");
+
+            if (results.length > 0) {
+                resultsContainer.innerHTML = results
+                    .map(song => `
+                        <p>
+                            <strong>${song.trackName}</strong><br>
+                            Album: ${song.albumName}<br>
+                            Acousticness: ${song.acousticness}<br>
+                            Popularity: ${song.popularity}<br>
+                            <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(song.trackName)}" target="_blank">Search on YouTube</a>
+                        </p>
+                    `)
+                    .join("");
+            } else {
+                resultsContainer.innerHTML = "<p>No songs found.</p>";
+            }
+        });
+
+        async function fetchChart() {
+            const chartCanvas = document.getElementById("chartCanvas");
+            try {
+                const response = await fetch("/chart");
+                const data = await response.json();
+                if (data.chart) {
+                    const chartImage = document.createElement("img");
+                    chartImage.src = data.chart;
+                    chartImage.alt = "Top 5 Albums Chart";
+                    chartImage.style.maxWidth = "100%";
+                    chartCanvas.parentNode.replaceChild(chartImage, chartCanvas);
+                } else {
+                    chartCanvas.parentNode.innerHTML = "<p>No data available for the chart. Please upload a dataset.</p>";
+                }
+            } catch (error) {
+                chartCanvas.parentNode.innerHTML = `<p>Error loading chart: ${error.message}</p>`;
+            }
+        }
+
+        document.querySelector(".tab-button[onclick=\"switchTab('chartTab')\"]").addEventListener("click", fetchChart);
+
+        function switchTab(tabId) {
+            document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
+            document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+            document.getElementById(tabId).classList.add("active");
+            document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add("active");
+        }
+    </script>
+</body>
+</html>
+
