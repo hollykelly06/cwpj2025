@@ -7,16 +7,144 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
-        body { font-family: 'Georgia', serif; background: linear-gradient(to bottom right, #ffdde1, #ee9ca7); text-align: center; }
-        .tabs { display: flex; justify-content: center; margin-top: 20px; }
-        .tab-button { padding: 12px 24px; margin: 0 8px; border: none; background-color: #ffcccb; border-radius: 12px; font-size: 1rem; cursor: pointer; transition: background 0.4s ease; }
-        .tab-button.active { background-color: #e57399; color: white; }
-        .tab-content { display: none; margin: 20px; }
-        .tab-content.active { display: block; }
-        .result { background: #ffe6e6; padding: 15px; border-radius: 12px; margin-top: 10px; }
-        .result ul { list-style: none; padding: 0; }
-        .result li { margin: 8px 0; font-size: 1.1rem; }
-        .result a { text-decoration: none; color: #e57399; font-weight: bold; }
+    /* General Styles */
+    body {
+        font-family: 'Helvetica', sans-serif;
+        background: linear-gradient(to bottom right, #ffb3b3, #ffcccc);
+        color: #333;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
+    header {
+        background-color: #ff66b2;
+        color: white;
+        padding: 20px;
+        font-size: 2.5rem;
+        font-weight: bold;
+        border-bottom: 3px solid #ff3399;
+    }
+
+    /* Tab Styles */
+    .tabs {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    .tab-button {
+        padding: 12px 24px;
+        margin: 0 10px;
+        border: none;
+        background-color: #ffcccb;
+        border-radius: 30px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .tab-button.active {
+        background-color: #ff4d94;
+        color: white;
+        box-shadow: 0 4px 12px rgba(255, 77, 148, 0.5);
+    }
+
+    .tab-content {
+        display: none;
+        margin-top: 40px;
+    }
+    .tab-content.active {
+        display: block;
+    }
+
+    /* Results and Forms */
+    .result {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+    .result p {
+        font-size: 1.2rem;
+    }
+
+    /* Form Styles */
+    input, select, button {
+        padding: 12px 18px;
+        font-size: 1rem;
+        margin: 10px 0;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        width: 80%;
+        max-width: 400px;
+    }
+    input:focus, select:focus, button:focus {
+        outline: none;
+        border-color: #ff66b2;
+        box-shadow: 0 0 6px rgba(255, 102, 178, 0.5);
+    }
+    button {
+        background-color: #ff66b2;
+        color: white;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+    }
+    button:hover {
+        background-color: #ff4d94;
+    }
+
+    /* Fan Response Section */
+    #responseList {
+        background: #f2f2f2;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 1rem;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+
+    /* Pie chart and other visuals */
+    #summaryChart {
+        margin-top: 40px;
+        max-width: 80%;
+        max-height: 400px;
+    }
+
+    /* Specific Styles for Each Tab */
+    #albumTab, #songTab, #formTab {
+        padding: 20px;
+    }
+
+    /* For the "Rep" text */
+    #albumTab p {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #ff3399;
+        margin-top: 20px;
+    }
+
+    /* Aesthetic for input placeholders */
+    ::placeholder {
+        color: #888;
+        font-style: italic;
+    }
+
+    /* Album Titles Styling */
+    #albumTab ul {
+        list-style-type: none;
+        padding: 0;
+    }
+    #albumTab ul li {
+        font-size: 1.5rem; /* Uniform size for album titles */
+        margin: 10px 0;
+        font-family: 'Arial', sans-serif;
+    }
+    #albumTab ul li h3, h4, h5, h6, h7, h8, h9, h10, h11 {
+        margin: 0;
+        font-size: inherit; /* Ensure consistency */
+    }
     </style>
 </head>
 <body>
@@ -24,19 +152,13 @@
     <div class="tabs">
         <button class="tab-button active" onclick="switchTab('albumTab')">Albums</button>
         <button class="tab-button" onclick="switchTab('songTab')">Songs</button>
-        <button class="tab-button" onclick="switchTab('chartTab')">Visualizations</button>
-        <button class="tab-button" onclick="switchTab('uploadTab')">Upload CSV</button>
         <button class="tab-button" onclick="switchTab('formTab')">Fan Responses</button>
+        <button class="tab-button" onclick="switchTab('uploadTab')">Upload CSV</button>
+        <button class="tab-button" onclick="switchTab('recommendTab')">Recommendations</button>
+        <button class="tab-button" onclick="switchTab('chartTab')">Visualizations</button>
     </div>
-    <div id="albumTab" class="tab-content active">
-        <h2>📀 Available Albums</h2>
-        <div id="albumResults" class="result"></div>
-    </div>
-    <div id="songTab" class="tab-content">
-        <h2>🔎 Search Songs</h2>
-        <input type="text" id="searchSongInput" class="search-box" placeholder="Search for a song..." oninput="searchSong()">
-        <div id="songResults" class="result"></div>
-    </div>
+
+    <!-- Visualizations Tab -->
     <div id="chartTab" class="tab-content">
         <h2>📊 Visualizations</h2>
         <div class="charts-container">
@@ -47,20 +169,93 @@
             <img src="static/average_acousticness.png" alt="Average Acousticness per Album">
         </div>
     </div>
-    <div id="uploadTab" class="tab-content">
-        <h2>📂 Upload a CSV File</h2>
-        <input type="file" id="fileInput" accept=".csv" onchange="handleFileUpload(event)">
-        <div id="fileDetails"></div>
+
+    <!-- Recommendations Tab -->
+    <div id="recommendTab" class="tab-content">
+        <h2>🎵 Recommended Songs & Albums</h2>
+        <div class="result">
+            <h3>Top Songs to Listen To based of data sheet:</h3>
+            <ul>
+                <li>🎤 "Cruel Summer" from the album Lover</li>
+                <li>🎤 "Lover" from the album Lover</li>
+                <li>🎤 "Fortnight ft. Post Malone" from the album TTPD: THE ANTHOLOGY</li>
+                <li>🎤 "I Can Do It With a Broken Heart" from the album TTPD: THE ANTHOLOGY</li>
+                <li>🎤 "So High School" from the album TTPD: THE ANTHOLOGY</li>
+            </ul>
+            <h3>Albums You Might Love based of data sheet:</h3>
+            <ul>
+                <li>🎶 "TTPD: THE ANTHOLOGY"</li>
+                <li>🎶 "Red (Taylor's Version)"</li>
+                <li>🎶 "Speak Now (Taylor's Version)"</li>
+                <li>🎶 "Midnights"</li>
+            </ul>
+            <h3>💡 Fun Facts About Taylor Swift:</h3>
+            <ul>
+                <li>🎤 Taylor Swift wrote her first song at the age of 12.</li>
+                <li>🎤 She is the first woman to win Album of the Year at the Grammys four times.</li>
+                <li>🎤 Her lucky number is 13, and she often includes it in her music videos and performances.</li>
+                <li>🎤 She has won over 12 Grammy Awards.</li>
+                <li>🎤 "Shake It Off" was written in just a single day!</li>
+            </ul>
+        </div>
     </div>
+
+    <!-- Albums Tab -->
+    <div id="albumTab" class="tab-content active">
+        <h2>📀 Available Albums</h2>
+        <div id="albumResults" class="result"></div>
+        <ul>
+            <li><h3>⌨️ TTPD: THE ANTHOLOGY</h3></li>
+            <li><h4>🗽 1989 (Taylor's Version)</h4></li>
+            <li><h5>💌 Speak Now (Taylor's Version)</h5></li>
+            <li><h6>⏰ Midnights</h6></li>
+            <li><h7>🧣 Red (Taylor's Version)</h7></li>
+            <li><h8>🌙 Evermore</h8></li>
+            <li><h9>🌲 Folklore</h9></li>
+            <li><h10>🐍 Reputation</h10></li>
+            <li><h11>💕 Lover</h11></li>
+        </ul>
+    </div>
+
+    <!-- Songs Tab -->
+    <div id="songTab" class="tab-content">
+        <h2>🔎 Search Songs</h2>
+        <input type="text" id="searchSongInput" placeholder="Search for a song..." oninput="searchSong()">
+        <div id="songResults" class="result"></div>
+    </div>
+
+    <!-- Fan Responses Tab -->
     <div id="formTab" class="tab-content">
         <h2>📜 Submit Your Response</h2>
-        <input type="text" id="nameInput" class="search-box" placeholder="Your Name">
-        <input type="text" id="favSongInput" class="search-box" placeholder="Favorite Taylor Swift Song">
-        <input type="text" id="favAlbumInput" class="search-box" placeholder="Favorite Album">
+        <input type="text" id="nameInput" placeholder="Your Name">
+        <input type="number" id="ageInput" placeholder="Your Age">
+        <select id="favAlbumInput">
+            <option value="">Select Your Favorite Album</option>
+            <option value="TTPD: THE ANTHOLOGY">TTPD: THE ANTHOLOGY</option>
+            <option value="1989 (Taylor's Version)">1989 (Taylor's Version)</option>
+            <option value="Reputation">Reputation</option>
+            <option value="Folklore">Folklore</option>
+            <option value="Lover">Lover</option>
+            <option value="Midnights">Midnights</option>
+            <option value="Red (Taylor's Version)">Red (Taylor's Version)</option>
+            <option value="Speak Now (Taylor's Version)">Speak Now</option>
+            <option value="Evermore">Evermore</option>
+        </select>
         <button onclick="submitResponse()">Submit</button>
+        
         <h3>Fan Responses</h3>
         <div id="responseList" class="result"></div>
+        <h3>Summary</h3>
+        <canvas id="summaryChart"></canvas>
     </div>
+
+    <!-- Upload CSV Tab -->
+    <div id="uploadTab" class="tab-content">
+        <h2>📤 Upload CSV File</h2>
+        <input type="file" id="fileUpload" accept=".csv" onchange="handleCSVUpload(event)">
+        <div id="uploadStatus" class="result"></div>
+    </div>
+
     <script>
         function switchTab(tabId) {
             document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
@@ -68,23 +263,33 @@
             document.getElementById(tabId).classList.add("active");
             document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add("active");
         }
+
         let data = [];
-        let responses = [];
-        function handleFileUpload(event) {
+
+        function handleCSVUpload(event) {
             const file = event.target.files[0];
-            if (file) {
-                document.getElementById('fileDetails').textContent = `Uploaded File: ${file.name}`;
-                Papa.parse(file, {
-                    header: true,
-                    dynamicTyping: true,
-                    complete: function(results) {
-                        data = results.data.filter(row => row.name && row.album);
-                        const uniqueAlbums = [...new Set(data.map(d => d.album))];
-                        document.getElementById("albumResults").innerHTML = `<ul>` + uniqueAlbums.map(album => `<li>📀 ${album}</li>`).join('') + `</ul>`;
-                    }
-                });
+            if (!file) return;
+
+            if (file.type !== 'text/csv') {
+                document.getElementById("uploadStatus").innerHTML = "❌ Please upload a CSV file.";
+                return;
             }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const contents = e.target.result;
+                Papa.parse(contents, {
+                    complete: function(results) {
+                        data = results.data;
+                        document.getElementById("uploadStatus").innerHTML = "✅ CSV file uploaded successfully!";
+                        console.log(data);
+                    },
+                    header: true
+                });
+            };
+            reader.readAsText(file);
         }
+
         function searchSong() {
             const query = document.getElementById("searchSongInput").value.toLowerCase();
             if (data.length === 0) {
@@ -96,8 +301,8 @@
                 const results = matchedSongs.map(d => `
                     <li>
                         🎤 <b>${d.name}</b> (📀 <i>${d.album}</i>)<br>
-                        ⭐ Popularity: ${d.popularity} | ⏳ Duration: ${d.duration_minutes.toFixed(2)} min <br>
-                        🔊 Loudness: ${d.loudness.toFixed(2)} dB | 🎶 Acoustic: ${d.acousticness} | 🎻 Instrumental: ${d.instrumentalness} <br>
+                        ⭐ Popularity: ${d.popularity} | ⏳ Duration: ${d.duration_minutes} min <br>
+                        🔊 Loudness: ${d.loudness} dB | 🎶 Acoustic: ${d.acousticness} | 🎻 Instrumental: ${d.instrumentalness} <br>
                         🎧 <a href="https://open.spotify.com/track/${d.uri.split(':').pop()}" target="_blank">Listen on Spotify</a>
                     </li>
                 `).join('');
@@ -106,14 +311,54 @@
                 document.getElementById("songResults").innerHTML = "❌ No results found.";
             }
         }
+
+        let responses = JSON.parse(localStorage.getItem("fanResponses")) || [];
+
         function submitResponse() {
-            const name = document.getElementById("nameInput").value;
-            const song = document.getElementById("favSongInput").value;
-            const album = document.getElementById("favAlbumInput").value;
-            if (name && song && album) {
-                responses.push(`💖 ${name} loves '${song}' from '${album}'`);
-                document.getElementById("responseList").innerHTML = `<ul>` + responses.map(r => `<li>${r}</li>`).join('') + `</ul>`;
+            const name = document.getElementById("nameInput").value.trim();
+            const age = document.getElementById("ageInput").value;
+            const favAlbum = document.getElementById("favAlbumInput").value;
+            if (!name || !age || !favAlbum) {
+                alert("Please fill out all fields correctly!");
+                return;
             }
+            responses.push({ name, age, favAlbum });
+            localStorage.setItem("fanResponses", JSON.stringify(responses));
+            displayResponses();
+            displaySummary();
+        }
+
+        function displayResponses() {
+            document.getElementById("responseList").innerHTML = responses.map(r => `<p>${r.name}, Age: ${r.age} | Favorite Album: ${r.favAlbum}</p>`).join('');
+        }
+
+        function displaySummary() {
+            const labels = Array.from(new Set(responses.map(r => r.favAlbum)));
+            const dataCount = labels.map(label => responses.filter(r => r.favAlbum === label).length);
+            const ctx = document.getElementById("summaryChart").getContext("2d");
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataCount,
+                        backgroundColor: ['#ff99cc', '#ff66b2', '#ff4d94', '#ff3399', '#ff0080', '#ff5e99'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { enabled: true }
+                    }
+                }
+            });
+        }
+
+        // Load responses and summary chart on page load
+        window.onload = () => {
+            displayResponses();
+            displaySummary();
         }
     </script>
 </body>
